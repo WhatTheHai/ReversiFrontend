@@ -1,0 +1,76 @@
+<html>
+  <head>
+    <link
+      rel="shortcut icon"
+      type="image/png"
+      href="jasmine/lib/jasmine/jasmine_favicon.png"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="jasmine/lib/jasmine/jasmine.css"
+    />
+
+    <script
+      type="text/javascript"
+      src="jasmine/lib/jasmine/jasmine.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="jasmine/lib/jasmine/jasmine-html.js"
+    ></script>
+    <script type="text/javascript" src="jasmine/lib/jasmine/boot.js"></script>
+    <script type="text/javascript" src="app.js"></script>
+    <script type="text/javascript" src="../js/feedbackWidget.js"></script>
+    <script type="text/javascript" src="../js/Game.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.js"></script>
+  </head>
+  <body>
+    <script>
+      beforeAll(function (done) {
+        $(function () {
+          done();
+        });
+      });
+
+      describe("A suite", function () {
+        it("contains spec with an expectation", function () {
+          expect(true).toBe(true);
+        });
+      });
+
+      describe("Application initialisation", function () {
+        it("Method init returns true", function () {
+          const result = myApp.init();
+          expect(result).toBe(true);
+        });
+        it("Method feedbackWidget defined and hidden", function () {
+          var widget = new FeedbackWidget("feedback-test");
+          expect($(widget)).toBeDefined();
+          widget.hide();
+          expect($("#feedback-test").attr("style")).toBe("display: none;");
+        });
+      });
+
+      describe("Game.js tests", function () {
+        it("Game var exists and is defined", function () {
+          expect(Game).toBeDefined();
+        });
+        it("Init function is defined in Game module", function () {
+          expect(Game.init).toBeDefined();
+        });
+        it("Init function of submodule Game.Reversi exists", function () {
+          expect(Game.Reversi.init).toBeDefined();
+        });
+        it("Init function of submodule Game.Data exists", function () {
+          expect(Game.Data.init).toBeDefined();
+        });
+        it("Init function of submodule Game.Model exists", function () {
+          expect(Game.Model.init).toBeDefined();
+        });
+      });
+    </script>
+
+    <div id="feedback-test" class="alert alert-danger" role="alert"></div>
+  </body>
+</html>
