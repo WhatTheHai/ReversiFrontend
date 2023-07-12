@@ -1,24 +1,33 @@
 const Game = (function (url) {
   //Configuratie en state waarden
-  let stateMap = {}
+  let stateMap = {
+    gameState: "",
+  }
   let configMap = {
-    apiUrl: ''
+    apiUrl: "",
+    playerToken: "",
+    Token: "",
   }
 
   // Private function init
-  const privateInit = function (afterInit) {
-    console.log(configMap.apiUrl)
+  const privateInit = function (url, playerToken, Token) {
+    configMap.apiUrl = url;
+    configMap.playerToken = playerToken;
+    configMap.Token = Token;
+    console.log(configMap)
     setInterval(_getCurrentGameState, 2000)
-    afterInit()
+    //afterInit()
   }
   // Waarde/object geretourneerd aan de outer scope
 
   const _getCurrentGameState = function () {
-    stateMap.gameState = Game.Model.getGameState()
+    stateMap.gameState = Game.Model.getGameState(configMap.Token);
   }
 
   return {
-    init: privateInit
+    init: privateInit,
+    configMap: configMap,
+    stateMap: stateMap
   }
 })('/api/url')
 
@@ -34,11 +43,11 @@ Game.Reversi = (function () {
 })()
 
 Game.Data = (function () {
-  let stateMap = { enviroment: 'development' }
+  let stateMap = { enviroment: 'production' }
   let configMap = {
     mock: [
       {
-        url: 'api/Game/Turn',
+        url: '/api/Game/Turn',
         data: 0
       }
     ]
@@ -54,8 +63,8 @@ Game.Data = (function () {
   const get = function (url) {
     if (stateMap.enviroment == 'development') {
       return getMockData(url)
-    } else if (stateMap == 'production') {
-      return $.get(url)
+    } else if (stateMap.enviroment == 'production') {
+        return $.get(Game.configMap.apiUrl + url)
         .then(r => {
           return r
         })
@@ -96,18 +105,19 @@ Game.Model = (function () {
       })
   }
 
-  const _getGameState = function () {
-    return Game.Data.get('/api/Spel/Beurt/<token>')
-      .then(data => {
-        if (data < 0 || data > 2) {
-          throw new Error(`Value gameState is invalid: ${data}`)
-        } else {
-          return data
-        }
-      })
-      .catch(error => {
-        console.log(error.message)
-      })
+  const _getGameState = function (token) {
+    const url = `/Game/${token}/turn`
+      return Game.Data.get(url)
+        .then(data => {
+          if (data !== "Black" && data !== "White") {
+            throw new Error(`Value gameState is invalid: ${data}`);
+          } else {
+            return data;
+          }
+        })
+        .catch(error => {
+          console.log(error.message);
+        });
   }
 
   return {
