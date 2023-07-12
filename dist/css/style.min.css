@@ -1,0 +1,191 @@
+#feedback-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 550px;
+  height: 250px;
+  border: 2px solid black;
+  border-radius: 10px;
+}
+
+@media only screen and (max-width: 600px) {
+  #feedback-container {
+    width: 80%;
+    height: 200px;
+    max-height: 100%;
+  }
+}
+#feedback-container footer {
+  padding: 10px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  position: absolute;
+  margin-top: auto;
+  bottom: 4%;
+  width: 100%;
+}
+
+@media only screen and (max-width: 600px) {
+  #feedback-container footer {
+    align-items: flex-start;
+  }
+}
+@media only screen and (max-width: 600px) {
+  #feedback-container footer {
+    flex-direction: column;
+  }
+}
+.feedback-container--success {
+  background-color: #59ce72;
+}
+
+.feedback-container--danger {
+  background-color: rgba(192, 38, 38, 0.3764705882);
+}
+
+.feedback-top-bar {
+  padding: 5px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.feedback-text {
+  display: flex;
+  padding: 5px;
+}
+
+@media only screen and (max-width: 600px) {
+  .feedback-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+.feedback-text--emoji {
+  font-size: 50px;
+  margin-right: 15px;
+  display: block;
+}
+
+@media only screen and (max-width: 600px) {
+  .feedback-text--emoji {
+    display: none;
+  }
+}
+.feedback-text--text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  color: #1b1b1b;
+  font-weight: bold;
+}
+
+@media only screen and (max-width: 600px) {
+  .feedback-text--text {
+    font-size: 8px;
+  }
+}
+/* INSPIRED BY THE BUTTONS OVER HERE (BUTTON 3)
+https://codepen.io/yuhomyan/details/OJMejWJ */
+.button--state-success {
+  background: rgb(28, 238, 0);
+  background: linear-gradient(0deg, rgb(20, 238, 0) 0%, rgb(2, 251, 114) 100%);
+  width: 80px;
+  height: 35px;
+  line-height: 20px;
+  padding: 0;
+  border: 1px transparent black;
+  border-radius: 10px;
+  margin-right: 10px;
+  animation: shake 8s infinite;
+}
+
+@media only screen and (max-width: 600px) {
+  .button--state-success {
+    margin-left: 10px;
+    margin-right: 0px;
+    margin-bottom: 5px;
+  }
+}
+@keyframes shake {
+  60% {
+    rotate: 0deg;
+  }
+  65% {
+    rotate: 8deg;
+  }
+  70% {
+    rotate: -8deg;
+  }
+  75% {
+    rotate: 8deg;
+  }
+  80% {
+    rotate: -8deg;
+  }
+  85% {
+    rotate: 8deg;
+  }
+  90% {
+    rotate: 0deg;
+  }
+}
+.button--state-danger {
+  background: rgb(238, 0, 0);
+  background: linear-gradient(0deg, rgba(117, 0, 0, 0.5) 0%, rgb(251, 2, 2) 100%);
+  width: 80px;
+  height: 35px;
+  line-height: 20px;
+  padding: 0;
+  border: 1px transparent black;
+  border-radius: 10px;
+  margin-left: 5px;
+}
+
+@media only screen and (max-width: 600px) {
+  .button--state-danger {
+    margin-left: 10px;
+  }
+}
+.button--state-close {
+  font-size: 25px;
+  background-color: transparent;
+  border: none;
+  color: black;
+  transition: color 0.4s;
+}
+
+.button--state-close:hover {
+  color: #cc0000;
+}
+
+.fade-in {
+  animation: fadeIn ease 3s;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.fade-out {
+  animation: fadeOut ease 3s;
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

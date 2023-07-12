@@ -21,8 +21,8 @@
     ></script>
     <script type="text/javascript" src="jasmine/lib/jasmine/boot.js"></script>
     <script type="text/javascript" src="app.js"></script>
-    <script type="text/javascript" src="../js/feedbackWidget.js"></script>
-    <script type="text/javascript" src="../js/Game.js"></script>
+    <script type="text/javascript" src="../source/js/feedbackWidget.js"></script>
+    <script type="text/javascript" src="../source/js/Game.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.js"></script>
   </head>
   <body>
@@ -45,10 +45,10 @@
           expect(result).toBe(true);
         });
         it("Method feedbackWidget defined and hidden", function () {
-          var widget = new FeedbackWidget("feedback-test");
+          var widget = new FeedbackWidget("feedback-container");
           expect($(widget)).toBeDefined();
           widget.hide();
-          expect($("#feedback-test").attr("style")).toBe("display: none;");
+          expect($("#feedback-container").attr("style")).toBe("display: none;");
         });
       });
 

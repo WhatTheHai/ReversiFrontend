@@ -33,7 +33,7 @@ const Game = (function (url) {
 
 Game.Reversi = (function () {
   let configMap = {}
-
+  
   const privateInit = function () {
     console.log('Hallo vanuit privateinit')
   }
@@ -43,7 +43,7 @@ Game.Reversi = (function () {
 })()
 
 Game.Data = (function () {
-  let stateMap = { enviroment: 'production' }
+  let stateMap = { enviroment: 'development' }
   let configMap = {
     mock: [
       {

@@ -13,8 +13,10 @@ class FeedbackWidget {
     textElement.textContent = message;
     if (type == "success") {
       $(elem).attr("class","feedback-container--success");
+      $(".feedback-text--emoji").text("✔️");
     } else {
       $(elem).attr("class", "feedback-container--danger");
+      $(".feedback-text--emoji").text("❌");
     }
     $(elem).addClass("fade-in");
     this.log({ message: message, type: type });
