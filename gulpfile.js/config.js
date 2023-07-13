@@ -1,9 +1,13 @@
 module.exports = {
-    localServerProjectPath : 'Z:/Client/Reversi_Hai',
+    localServerProjectPath : 'C:/Users/Hai/source/repos/ReversiMvcApp/ReversiMvcApp/wwwroot',
     files: {
         js: [
             'source/js/**/*.js',
             'source/js/*.js'
+        ],
+        jsOrder: [
+            'src/js/game.js',
+            'src/js/**/*.js',
         ],
         sass: [
             './source/css/*.css',

@@ -1,16 +1,15 @@
 const config = require('./config');
 const { watch, series } = require('gulp');
-const Sass = require('gulp-sass')(require('sass'));
 
 const hello = function (done) {
     console.log(`Groeten van ${config.voornaam}!`)
     done();
 }
 
-sass = require('./tasks/sass').sass(config.localServerProjectPath, config.files.sass);
+const sass = require('./tasks/sass').sass(config.localServerProjectPath, config.files.sass);
 sass.displayName = 'sass';  
 
-const js = require('./tasks/js').js(config.localServerProjectPath);
+const js = require('./tasks/js').js(config.files.js, config.files.jsOrder, config.localServerProjectPath);
 js.displayName = 'js';
 
 
@@ -20,7 +19,6 @@ const watchFiles = () => {
  }; 
 
 exports.default = hello;
-
 exports.watch = watchFiles
 
 exports.js = js;

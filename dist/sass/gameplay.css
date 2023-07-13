@@ -1,0 +1,15 @@
+.game-board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  background-color: #eaeaea;
+  border: 1px solid #ccc;
+}
+
+.black-piece {
+  background-color: black;
+}
+
+.white-piece {
+  background-color: white;
+}

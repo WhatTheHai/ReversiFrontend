@@ -189,3 +189,57 @@ https://codepen.io/yuhomyan/details/OJMejWJ */
     opacity: 0;
   }
 }
+#board-container {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  background-color: #eaeaea;
+  border: 1px solid #ccc;
+  height: 512px;
+  width: 512px;
+}
+
+.grid-item {
+  background-color: #eee;
+  border: 1px solid #ccc;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fiche {
+  border-radius: 50%;
+  height: 51.2px;
+  width: 51.2px;
+  background-size: 16px 16px;
+  animation-name: ficheAnimation;
+  animation-duration: 0.5s;
+  animation-fill-mode: forwards;
+}
+
+@keyframes ficheAnimation {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(0.5) rotate(180deg);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+    opacity: 1;
+  }
+}
+.black-piece {
+  background-color: #001;
+  background-image: radial-gradient(white 15%, transparent 16%), radial-gradient(white 15%, transparent 16%);
+  background-position: 0 0, 30px 30px;
+}
+
+.white-piece {
+  background-color: lightgray;
+  background-image: linear-gradient(transparent 50%, rgba(255, 255, 255, 0.5) 50%);
+}

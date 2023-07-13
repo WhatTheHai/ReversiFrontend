@@ -14,9 +14,10 @@ const Game = (function (url) {
     configMap.apiUrl = url;
     configMap.playerToken = playerToken;
     configMap.Token = Token;
-    console.log(configMap)
+    console.log(configMap);
     setInterval(_getCurrentGameState, 2000)
     //afterInit()
+    Game.Reversi.init();
   }
   // Waarde/object geretourneerd aan de outer scope
 
@@ -35,10 +36,55 @@ Game.Reversi = (function () {
   let configMap = {}
   
   const privateInit = function () {
-    console.log('Hallo vanuit privateinit')
+    loadBoardCells();
   }
+  
+  const cellClickListener = function() {
+    const x = parseInt(this.dataset.row);
+    const y = parseInt(this.dataset.col);
+    const random = Math.floor(Math.random() * 2)
+    const color = 'black';
+    if(random == 0) {
+      showFiche(x, y, 'black');
+    } else {
+      showFiche(x, y, 'white');
+    }
+  };
+
+  function showFiche(x, y, color) {
+    const cellSelector = `.grid-item[data-row="${x}"][data-col="${y}"]`;
+    const cell = document.querySelector(cellSelector);
+  
+    if (cell) {
+      const fiche = document.createElement('div');
+      fiche.className = `${color}-piece fiche`;
+      cell.appendChild(fiche);
+      cell.removeEventListener('click', cellClickListener);
+    } else {
+      console.error(`Grid item at row ${x}, column ${y} not found.`);
+    }
+  }
+
+  function loadBoardCells() {
+    const boardContainer = document.getElementById('board-container');
+    const boardSize = 8;
+    for (let row = 1; row <= boardSize; row++) {
+      for (let col = 1; col <= boardSize; col++) {
+        const cell = document.createElement('div');
+        cell.className = 'grid-item';
+        cell.dataset.row = row;
+        cell.dataset.col = col;
+
+        cell.addEventListener('click', cellClickListener);
+        boardContainer.appendChild(cell);
+      }
+    }
+  }
+
   return {
-    init: privateInit
+    init: privateInit,
+    showFiche: showFiche,
+    showBoard: loadBoardCells
   }
 })()
 
