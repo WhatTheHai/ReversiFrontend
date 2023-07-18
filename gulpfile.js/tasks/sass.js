@@ -9,7 +9,7 @@ const sass = function (serverProjectPath, files_sass) {
             .pipe(dest('./dist/sass'))
             .pipe(concat('style.min.css'))
             .pipe(dest('./dist/css'))
-            .pipe(dest(serverProjectPath + 'css'));
+            .pipe(dest(serverProjectPath + '/css'));
     }
 };
 

@@ -81,12 +81,13 @@ var FeedbackWidget = /*#__PURE__*/function () {
 var Game = function (url) {
   //Configuratie en state waarden
   var stateMap = {
-    gameState: ""
+    gameState: 0
   };
   var configMap = {
-    apiUrl: "",
-    playerToken: "",
-    Token: ""
+    apiUrl: '',
+    playerToken: '',
+    Token: '',
+    Color: ''
   };
 
   // Private function init
@@ -95,72 +96,154 @@ var Game = function (url) {
     configMap.playerToken = playerToken;
     configMap.Token = Token;
     console.log(configMap);
-    setInterval(_getCurrentGameState, 2000);
+    _getCurrentGameState();
+    setInterval(_getCurrentGameState, 1500);
     //afterInit()
-    Game.Reversi.init();
+    //Game.Reversi.init()
   };
   // Waarde/object geretourneerd aan de outer scope
 
+  var initializeOnce = false;
+  var getColor = function getColor() {
+    if (configMap.playerToken == stateMap.gameState.player1Token) {
+      return 'white';
+    } else {
+      return 'black';
+    }
+  };
   var _getCurrentGameState = function _getCurrentGameState() {
-    stateMap.gameState = Game.Model.getGameState(configMap.Token);
+    Game.Model.getGameState(configMap.Token).then(function (data) {
+      stateMap.gameState = data;
+      Game.Reversi.init();
+      if (!initializeOnce) {
+        configMap.Color = getColor();
+        initializeOnce = true;
+      }
+      if (data.finished == "True") {
+        var currentUrl = window.location;
+        var redirectUrl = "".concat(currentUrl.protocol, "//").concat(currentUrl.host, "/Game/Result/").concat(configMap.Token);
+        console.log(redirectUrl);
+        window.location.href = redirectUrl;
+      }
+    })["catch"](function (error) {
+      console.log(error.message);
+    });
   };
   return {
     init: privateInit,
     configMap: configMap,
-    stateMap: stateMap
+    stateMap: stateMap,
+    getCurrentGameState: _getCurrentGameState
   };
 }('/api/url');
 Game.Reversi = function () {
   var configMap = {};
   var privateInit = function privateInit() {
-    loadBoardCells();
+    var boardData = JSON.parse(Game.stateMap.gameState.board);
+    _loadBoard(boardData);
   };
   var cellClickListener = function cellClickListener() {
-    var x = parseInt(this.dataset.row);
-    var y = parseInt(this.dataset.col);
-    var random = Math.floor(Math.random() * 2);
-    var color = 'black';
-    if (random == 0) {
-      showFiche(x, y, 'black');
+    var x = parseInt(this.dataset.col);
+    var y = parseInt(this.dataset.row);
+    var color = Game.configMap.Color;
+    if (color == 'black') {
+      _showFiche(x, y, 'black');
     } else {
-      showFiche(x, y, 'white');
+      _showFiche(x, y, 'white');
+    }
+    if (color == 'black' || color == 'white') {
+      Game.Reversi.doMove(x, y).then(function () {
+        //Succes -> check game state
+        return Game.getCurrentGameState();
+      })["catch"](function (error) {
+        console.log(error.message);
+      });
     }
   };
-  function showFiche(x, y, color) {
-    var cellSelector = ".grid-item[data-row=\"".concat(x, "\"][data-col=\"").concat(y, "\"]");
-    var cell = document.querySelector(cellSelector);
-    if (cell) {
+  var _doMove = function _doMove(x, y) {
+    var move = {
+      X: x,
+      Y: y,
+      GameToken: Game.configMap.Token,
+      PlayerToken: Game.configMap.playerToken
+    };
+    return Game.Data.put('/game/move', move);
+  };
+  function _showFiche(x, y, color) {
+    var cell = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+    var cellSelector = ".grid-item[data-row=\"".concat(y, "\"][data-col=\"").concat(x, "\"]");
+    cell = cell || document.querySelector(cellSelector);
+
+    // Incase the board or cell is incorrect, helpful for debugging
+    if (!cell) {
+      console.error("Grid item at row ".concat(x, ", column ").concat(y, " not found."));
+      return;
+    }
+
+    // Get the current fiche
+    var existingFiche = cell.querySelector('.fiche');
+
+    // Remove if it's a different colour, main purpose is for when
+    // the data changes.
+    if (existingFiche) {
+      if (existingFiche.classList.contains("".concat(color, "-piece"))) {
+        return;
+      } else {
+        existingFiche.remove();
+      }
+    }
+
+    // If it's a nothing piece, it's clickable, if it's either a black or white piece
+    // add the piece and make it unclickable for the user.
+    if (color) {
       var fiche = document.createElement('div');
       fiche.className = "".concat(color, "-piece fiche");
       cell.appendChild(fiche);
       cell.removeEventListener('click', cellClickListener);
     } else {
-      console.error("Grid item at row ".concat(x, ", column ").concat(y, " not found."));
+      // If the color is blank, remove the fiche from the cell.
+      cell.innerHTML = '';
+      cell.addEventListener('click', cellClickListener);
     }
   }
-  function loadBoardCells() {
+  function _loadBoard(boardData) {
     var boardContainer = document.getElementById('board-container');
-    var boardSize = 8;
-    for (var row = 1; row <= boardSize; row++) {
-      for (var col = 1; col <= boardSize; col++) {
-        var cell = document.createElement('div');
+    var boardSize = boardData.length;
+    for (var row = 0; row < boardSize; row++) {
+      for (var col = 0; col < boardSize; col++) {
+        var cellSelector = ".grid-item[data-row=\"".concat(row, "\"][data-col=\"").concat(col, "\"]");
+        var existingCell = document.querySelector(cellSelector);
+        var cell = existingCell || document.createElement('div');
         cell.className = 'grid-item';
         cell.dataset.row = row;
         cell.dataset.col = col;
-        cell.addEventListener('click', cellClickListener);
-        boardContainer.appendChild(cell);
+        if (!existingCell) {
+          boardContainer.appendChild(cell);
+        }
+        var cellValue = boardData[row][col];
+        var color = '';
+        if (cellValue === 1) {
+          color = 'white';
+        } else if (cellValue === 2) {
+          color = 'black';
+        }
+        _showFiche(row, col, color, cell);
+        if (!existingCell && !color) {
+          cell.addEventListener('click', cellClickListener);
+        }
       }
     }
   }
   return {
     init: privateInit,
-    showFiche: showFiche,
-    showBoard: loadBoardCells
+    showFiche: _showFiche,
+    showBoard: _loadBoard,
+    doMove: _doMove
   };
 }();
 Game.Data = function () {
   var stateMap = {
-    enviroment: 'development'
+    enviroment: 'production'
   };
   var configMap = {
     mock: [{
@@ -187,6 +270,36 @@ Game.Data = function () {
       });
     }
   };
+  var put = function put(url, data) {
+    if (stateMap.enviroment === 'development') {
+      return getMockData(url);
+    } else if (stateMap.enviroment === 'production') {
+      return fetch(Game.configMap.apiUrl + url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      }).then(function (response) {
+        if (!response.ok) {
+          if (response.status === 401) {
+            return response.text().then(function (message) {
+              feedbackWidget.show("\"".concat(message), 'danger');
+            });
+          } else {
+            throw new Error('Request failed with status: ' + response.status);
+          }
+        }
+        // Handle successful response
+        return response.json();
+      }).then(function (data) {
+        // Process the data from a successful response
+      })["catch"](function (error) {
+        console.log(error.message); // Display the error message
+      });
+    }
+  };
+
   var privateInit = function privateInit(environment) {
     if (environment != 'production' && environment != 'development') {
       throw new Error('Environment parameter is invalid');
@@ -195,6 +308,7 @@ Game.Data = function () {
   };
   return {
     get: get,
+    put: put,
     init: privateInit
   };
 }();
@@ -213,13 +327,9 @@ Game.Model = function () {
     });
   };
   var _getGameState = function _getGameState(token) {
-    var url = "/Game/".concat(token, "/turn");
+    var url = "/Game/".concat(token);
     return Game.Data.get(url).then(function (data) {
-      if (data !== "Black" && data !== "White") {
-        throw new Error("Value gameState is invalid: ".concat(data));
-      } else {
-        return data;
-      }
+      return data;
     })["catch"](function (error) {
       console.log(error.message);
     });

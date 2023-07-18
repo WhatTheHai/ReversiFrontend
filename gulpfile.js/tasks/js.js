@@ -14,7 +14,7 @@ const fn = function (filesJs, filesJsOrder, backendPath) {
         })
       )
       .pipe(dest('./dist/js'))
-      .pipe(dest(backendPath + 'js'))
+      .pipe(dest(backendPath + '/js'))
   }
 }
 exports.js = fn

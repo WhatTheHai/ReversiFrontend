@@ -21,6 +21,7 @@ class FeedbackWidget {
     $(elem).addClass("fade-in");
     this.log({ message: message, type: type });
   }
+  
   hide() {
     let elem = document.getElementById(this._elementId);
     elem.classList.add("fade-out");
