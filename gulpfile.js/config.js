@@ -15,7 +15,10 @@ module.exports = {
         ],
         html: [
             'source/index.html'
-        ]
+        ],
+        vendor: [
+            './vendor/**/*.js',
+        ],
     },
     voornaam: 'Hai'
 };

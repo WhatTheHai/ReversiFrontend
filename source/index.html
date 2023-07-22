@@ -1,42 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.js"></script>
 
-    <meta charset="UTF-8" />
-    <title>Javascript getting started</title>
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.js"></script>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-    <script src="../dist/js/app.js"></script>
-    <link rel="stylesheet" href="../dist/css/style.min.css" />
-  </head>
-  <body>
-    <div id="feedback-container" class="fade-in feedback-container--success" style="display: none">
-      <header class="feedback-top-bar">
-        <button class="button button--state-close" onclick="feedbackWidget.hide()">X</button>
-      </header>
-      <article class="feedback-text">
-        <i class="feedback-text--emoji">✔️</i>
-        <p class="feedback-text--text">Mike wants to participate in your game. Agree?</p>
-      </article>
-      <footer>
-        <button class="button button--state-success">Accept</button>
-        <button class="button button--state-danger">Decline</button>
-      </footer>
-    </div>
-    <div id="board-container" class="board-container"></div>
-    <script>
-      $(function () {
-        feedbackWidget = new FeedbackWidget("feedback-container");
-        Game.init(afterInit(), "b", "c");
-      });
-      function afterInit() {
-        console.log("Game init voltooid");
-      }
-      // $("#okButton").on("click", function () {
-      //   alert("The button was clicked.");
-      // });
-    </script>
-  </body>
+  <meta charset="UTF-8" />
+  <title>Javascript getting started</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" />
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+    crossorigin="anonymous"></script>
+  <script src="../dist/js/app.js"></script>
+  <link rel="stylesheet" href="../dist/css/style.min.css" />
+</head>
+
+<body>
+  <div id="feedback-container" class="fade-in feedback-container--success" style="display: none">
+    <header class="feedback-top-bar">
+      <button class="button button--state-close" onclick="feedbackWidget.hide()"> 
+        X
+      </button>
+    </header>
+    <article class="feedback-text">
+      <i class="feedback-text--emoji">✔️</i>
+      <p class="feedback-text--text">
+        Mike wants to participate in your game. Agree?
+      </p>
+    </article>
+    <footer>
+      <button class="button button--state-success">Accept</button>
+      <button class="button button--state-danger">Decline</button>
+    </footer>
+  </div>
+  <div id="board-container" class="board-container"></div>
+  <script>
+    $(function () {
+      feedbackWidget = new FeedbackWidget("feedback-container");
+      Game.init(afterInit(), "b", "c");
+    });
+    function afterInit() {
+      console.log("Game init voltooid");
+    }
+  </script>
+</body>
+
 </html>

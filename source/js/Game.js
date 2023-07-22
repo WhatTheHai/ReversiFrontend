@@ -291,7 +291,7 @@ Game.Model = (function () {
         console.log(error.message)
       })
   }
-
+  
   return {
     init: privateInit,
     getWeather: _getWeather,
