@@ -5,9 +5,9 @@ const cleanCSS = require('gulp-clean-css');
 const rename = require('gulp-rename');
 const autoprefixer = require('gulp-autoprefixer');
 
-const sass = function (files_sass, backendPath) {
+const sass = function (sassFiles, backendPath) {
   return function () {
-    return src(files_sass)
+    return src(sassFiles)
       .pipe(gulpSass().on('error', gulpSass.logError))
       .pipe(cleanCSS({compatibility: 'ie8'}))
       .pipe(rename('style.min.css'))

@@ -6,8 +6,8 @@ module.exports = {
             'source/js/*.js'
         ],
         jsOrder: [
-            'src/js/game.js',
-            'src/js/**/*.js',
+            'source/js/game.js',
+            'source/js/**/*.js',
         ],
         sass: [
             './source/css/*.css',
@@ -19,6 +19,11 @@ module.exports = {
         vendor: [
             './vendor/**/*.js',
         ],
+        templates: [
+            './templates/**/[^_]*.hbs',
+        ],
+        partials: [
+            './templates/**/_*.hbs',
+        ]
     },
-    voornaam: 'Hai'
 };

@@ -4,10 +4,10 @@ const concat = require('gulp-concat')
 const babel = require('gulp-babel')
 const uglify = require('gulp-uglify')
 
-const js = function (filesJs, filesJsOrder, backendPath) {
+const js = function (jsFiles, jsOrder, backendPath) {
   return function () {
-    return src(filesJs)
-      .pipe(order(filesJsOrder, { base: './' }))
+    return src(jsFiles)
+      .pipe(order(jsOrder, { base: './' }))
       .pipe(concat('app.js'))
       .pipe(
         babel({
@@ -15,7 +15,7 @@ const js = function (filesJs, filesJsOrder, backendPath) {
         })
       )
       .pipe(dest('./dist/js'))
-      .pipe(uglify({ compress: true }))
+      //.pipe(uglify({ compress: true }))
       .pipe(dest(backendPath + '/js'))
   }
 }

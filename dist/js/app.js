@@ -6,6 +6,65 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
 function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+var Game = function () {
+  //Configuratie en state waarden
+  var stateMap = {
+    gameState: 0
+  };
+  var configMap = {
+    apiUrl: '',
+    playerToken: '',
+    Token: '',
+    Color: ''
+  };
+
+  // Private function init
+  var _init = function _init(url, playerToken, Token) {
+    configMap.apiUrl = url;
+    configMap.playerToken = playerToken;
+    configMap.Token = Token;
+    console.log(configMap);
+    Game.Data.init(configMap.apiUrl, "production");
+    Game.Model.init();
+    Game.Template.init();
+    _getCurrentGameState();
+    setInterval(_getCurrentGameState, 1500);
+  };
+  // Waarde/object geretourneerd aan de outer scope
+
+  var initializeOnce = false;
+  var getColor = function getColor() {
+    if (configMap.playerToken == stateMap.gameState.player1Token) {
+      return 'white';
+    } else {
+      return 'black';
+    }
+  };
+  var _getCurrentGameState = function _getCurrentGameState() {
+    Game.Model.getGameState(configMap.Token).then(function (data) {
+      stateMap.gameState = data;
+      Game.Reversi.init(stateMap.gameState.board);
+      if (!initializeOnce) {
+        configMap.Color = getColor();
+        initializeOnce = true;
+      }
+      if (data.finished == "True") {
+        var currentUrl = window.location;
+        var redirectUrl = "".concat(currentUrl.protocol, "//").concat(currentUrl.host, "/Game/Result/").concat(configMap.Token);
+        console.log(redirectUrl);
+        window.location.href = redirectUrl;
+      }
+    })["catch"](function (error) {
+      console.log(error.message);
+    });
+  };
+  return {
+    init: _init,
+    configMap: configMap,
+    stateMap: stateMap,
+    getCurrentGameState: _getCurrentGameState
+  };
+}();
 var FeedbackWidget = /*#__PURE__*/function () {
   function FeedbackWidget(elementId) {
     _classCallCheck(this, FeedbackWidget);
@@ -78,68 +137,111 @@ var FeedbackWidget = /*#__PURE__*/function () {
   }]);
   return FeedbackWidget;
 }();
-var Game = function (url) {
-  //Configuratie en state waarden
+Game.Data = function () {
   var stateMap = {
-    gameState: 0
+    enviroment: 'production'
   };
   var configMap = {
-    apiUrl: '',
-    playerToken: '',
-    Token: '',
-    Color: ''
+    url: "",
+    mock: [{
+      url: '/api/Game/Turn',
+      data: 0
+    }]
   };
-
-  // Private function init
-  var privateInit = function privateInit(url, playerToken, Token) {
-    configMap.apiUrl = url;
-    configMap.playerToken = playerToken;
-    configMap.Token = Token;
-    console.log(configMap);
-    _getCurrentGameState();
-    setInterval(_getCurrentGameState, 1500);
-    //afterInit()
-    //Game.Reversi.init()
+  var getMockData = function getMockData(url) {
+    var mockData = configMap.mock.find(function (mock) {
+      return mock.url === url;
+    });
+    return new Promise(function (resolve, reject) {
+      resolve(mockData);
+    });
   };
-  // Waarde/object geretourneerd aan de outer scope
-
-  var initializeOnce = false;
-  var getColor = function getColor() {
-    if (configMap.playerToken == stateMap.gameState.player1Token) {
-      return 'white';
-    } else {
-      return 'black';
+  var get = function get(url) {
+    if (stateMap.enviroment == 'development') {
+      return getMockData(url);
+    } else if (stateMap.enviroment == 'production') {
+      return $.get(configMap.url + url).then(function (r) {
+        return r;
+      })["catch"](function (e) {
+        console.log(e.message);
+      });
     }
   };
-  var _getCurrentGameState = function _getCurrentGameState() {
-    Game.Model.getGameState(configMap.Token).then(function (data) {
-      stateMap.gameState = data;
-      Game.Reversi.init();
-      if (!initializeOnce) {
-        configMap.Color = getColor();
-        initializeOnce = true;
+  var put = function put(url, data) {
+    if (stateMap.enviroment === 'development') {
+      return getMockData(url);
+    } else if (stateMap.enviroment === 'production') {
+      return fetch(configMap.url + url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      }).then(function (response) {
+        if (!response.ok) {
+          if (response.status === 401) {
+            return response.text().then(function (message) {
+              feedbackWidget.show("\"".concat(message), 'danger');
+            });
+          } else {
+            throw new Error('Request failed with status: ' + response.status);
+          }
+        }
+        // Handle successful response
+        return response.json();
+      }).then(function (data) {
+        // Process the data from a successful response
+      })["catch"](function (error) {
+        console.log(error.message); // Display the error message
+      });
+    }
+  };
+
+  var _init = function _init(url, environment) {
+    configMap.url = url;
+    if (environment != 'production' && environment != 'development') {
+      throw new Error('Environment parameter is invalid');
+    }
+    stateMap.enviroment = environment;
+  };
+  return {
+    get: get,
+    put: put,
+    init: _init
+  };
+}();
+Game.Model = function () {
+  var configMap = {};
+  var privateInit = function privateInit() {};
+  var _getWeather = function _getWeather(url) {
+    return Game.Data.get(url).then(function (data) {
+      if (data['main']['temp']) {
+        return data;
+      } else {
+        throw new Error('No temperature available in data');
       }
-      if (data.finished == "True") {
-        var currentUrl = window.location;
-        var redirectUrl = "".concat(currentUrl.protocol, "//").concat(currentUrl.host, "/Game/Result/").concat(configMap.Token);
-        console.log(redirectUrl);
-        window.location.href = redirectUrl;
-      }
+    })["catch"](function (error) {
+      console.log(error.message);
+    });
+  };
+  var _getGameState = function _getGameState(token) {
+    var url = "/Game/".concat(token);
+    return Game.Data.get(url).then(function (data) {
+      return data;
     })["catch"](function (error) {
       console.log(error.message);
     });
   };
   return {
     init: privateInit,
-    configMap: configMap,
-    stateMap: stateMap,
-    getCurrentGameState: _getCurrentGameState
+    getWeather: _getWeather,
+    getGameState: _getGameState
   };
-}('/api/url');
+}();
 Game.Reversi = function () {
   var configMap = {};
-  var privateInit = function privateInit() {
-    var boardData = JSON.parse(Game.stateMap.gameState.board);
+  var _init = function _init(gameboard) {
+    var boardData = JSON.parse(gameboard);
     _loadBoard(boardData);
   };
   var cellClickListener = function cellClickListener() {
@@ -193,7 +295,7 @@ Game.Reversi = function () {
       }
     }
 
-    // If it's a nothing piece, it's clickable, if it's either a black or white piece
+    // If it's a nothing piece, it's clickable, else if it's either a black or white piece
     // add the piece and make it unclickable for the user.
     if (color) {
       var fiche = document.createElement('div');
@@ -235,108 +337,25 @@ Game.Reversi = function () {
     }
   }
   return {
-    init: privateInit,
+    init: _init,
     showFiche: _showFiche,
     showBoard: _loadBoard,
     doMove: _doMove
   };
 }();
-Game.Data = function () {
-  var stateMap = {
-    enviroment: 'production'
+Game.Template = function () {
+  var getTemplate = function getTemplate(templateName) {
+    var templateNames = templateName.split('.');
+    var template = sp;
   };
-  var configMap = {
-    mock: [{
-      url: '/api/Game/Turn',
-      data: 0
-    }]
+  var _parseTemplate = function _parseTemplate(templateName, data) {
+    return getTemplate(templateName)(data);
   };
-  var getMockData = function getMockData(url) {
-    var mockData = configMap.mock.find(function (mock) {
-      return mock.url === url;
-    });
-    return new Promise(function (resolve, reject) {
-      resolve(mockData);
-    });
-  };
-  var get = function get(url) {
-    if (stateMap.enviroment == 'development') {
-      return getMockData(url);
-    } else if (stateMap.enviroment == 'production') {
-      return $.get(Game.configMap.apiUrl + url).then(function (r) {
-        return r;
-      })["catch"](function (e) {
-        console.log(e.message);
-      });
-    }
-  };
-  var put = function put(url, data) {
-    if (stateMap.enviroment === 'development') {
-      return getMockData(url);
-    } else if (stateMap.enviroment === 'production') {
-      return fetch(Game.configMap.apiUrl + url, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      }).then(function (response) {
-        if (!response.ok) {
-          if (response.status === 401) {
-            return response.text().then(function (message) {
-              feedbackWidget.show("\"".concat(message), 'danger');
-            });
-          } else {
-            throw new Error('Request failed with status: ' + response.status);
-          }
-        }
-        // Handle successful response
-        return response.json();
-      }).then(function (data) {
-        // Process the data from a successful response
-      })["catch"](function (error) {
-        console.log(error.message); // Display the error message
-      });
-    }
-  };
-
-  var privateInit = function privateInit(environment) {
-    if (environment != 'production' && environment != 'development') {
-      throw new Error('Environment parameter is invalid');
-    }
-    stateMap.enviroment = environment;
+  var _init = function _init() {
+    console.log("Game template init!");
   };
   return {
-    get: get,
-    put: put,
-    init: privateInit
-  };
-}();
-Game.Model = function () {
-  var configMap = {};
-  var privateInit = function privateInit() {};
-  var _getWeather = function _getWeather(url) {
-    return Game.Data.get(url).then(function (data) {
-      if (data['main']['temp']) {
-        return data;
-      } else {
-        throw new Error('No temperature available in data');
-      }
-    })["catch"](function (error) {
-      console.log(error.message);
-    });
-  };
-  var _getGameState = function _getGameState(token) {
-    var url = "/Game/".concat(token);
-    return Game.Data.get(url).then(function (data) {
-      return data;
-    })["catch"](function (error) {
-      console.log(error.message);
-    });
-  };
-  return {
-    init: privateInit,
-    getWeather: _getWeather,
-    getGameState: _getGameState
+    parseTemplate: _parseTemplate,
+    init: _init
   };
 }();

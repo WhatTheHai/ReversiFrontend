@@ -1,11 +1,6 @@
 const config = require('./config');
 const { watch, series } = require('gulp');
 
-const hello = function (done) {
-    console.log(`Groeten van ${config.voornaam}!`)
-    done();
-}
-
 const sass = require('./tasks/sass').sass(config.files.sass, config.localServerProjectPath);
 sass.displayName = 'sass';  
 
@@ -18,17 +13,23 @@ html.displayName = 'html';
 const vendor = require('./tasks/vendor').vendor(config.files.vendor, config.localServerProjectPath);
 vendor.displayName = 'vendor';
 
+const templates = require('./tasks/templates').templates(config.files.templates, config.files.partials, config.localServerProjectPath);
+templates.displayName = 'templates';
+
 const watchFiles = () => {
      watch(config.files.sass, series(sass));
      watch(config.files.js, series(js));
      watch(config.files.html, series(html));
      watch(config.files.vendor, series(vendor));
+     watch(config.files.templates, series(templates));
+     watch(config.files.partials, series(templates));
  }; 
 
-exports.default = hello;
 exports.watch = watchFiles
 
-exports.js = js;
 exports.sass = sass;
+exports.js = js;
 exports.html = html;
 exports.vendor = vendor;
+exports.templates = templates;
+exports.default = series(sass, js, html, vendor, templates);
