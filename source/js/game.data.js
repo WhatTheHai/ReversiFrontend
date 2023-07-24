@@ -44,9 +44,9 @@ Game.Data = (function () {
       })
         .then(response => {
           if (!response.ok) {
-            if (response.status === 401) {
+            if (response.status === 400 || response.status === 401) {
               return response.text().then(message => {
-                feedbackWidget.show(`"${message}`, 'danger')
+                feedbackWidget.show(`${message}`, 'danger')
               })
             } else {
               throw new Error('Request failed with status: ' + response.status)
