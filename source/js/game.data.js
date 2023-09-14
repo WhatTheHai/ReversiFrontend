@@ -31,6 +31,11 @@ Game.Data = (function () {
     }
   }
 
+  const getDogFact = function () {
+    let url = 'https://dogapi.dog/api/v2/facts';
+    return get(url);
+  }
+
   const put = function (url, data) {
     if (stateMap.enviroment === 'development') {
       return getMockData(url)
@@ -75,6 +80,7 @@ Game.Data = (function () {
   return {
     get: get,
     put: put,
-    init: _init
+    init: _init,
+    getDogFact: getDogFact
   }
 })();

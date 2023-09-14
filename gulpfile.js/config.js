@@ -7,7 +7,6 @@ module.exports = {
         ],
         jsOrder: [
             'source/js/game.js',
-            'source/js/game.templates.js',
             'source/js/**/*.js',
         ],
         sass: [

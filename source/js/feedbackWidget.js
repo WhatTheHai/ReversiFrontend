@@ -29,7 +29,7 @@ class FeedbackWidget {
       elem.style.display = "none";
       elem.classList.remove("fade-out");
       elem.classList.remove("fade-in");
-    }, 3000)
+    }, 749)
   }
   log(message) {
     let allMessages = JSON.parse(localStorage.getItem("feedback_widget"));

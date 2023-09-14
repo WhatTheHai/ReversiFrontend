@@ -1,5 +1,9 @@
-{{#if (eq color 'black')}}
+{{#if (isBlackPiece player)}}
   <div class="black-piece fiche"></div>
 {{else}}
-  <div class="white-piece fiche"></div>
+  {{#if (isWhitePiece player)}}
+    <div class="white-piece fiche"></div>
+  {{else}}
+    <div class="empty-piece fiche" onclick="Game.Reversi.cellClickListener.call(this)"></div>
+  {{/if}}
 {{/if}}

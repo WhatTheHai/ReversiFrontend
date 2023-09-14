@@ -170,7 +170,7 @@ https://codepen.io/yuhomyan/details/OJMejWJ */
 }
 
 .fade-in {
-  animation: fadeIn ease 3s;
+  animation: fadeIn ease 1s;
 }
 
 @keyframes fadeIn {
@@ -183,7 +183,7 @@ https://codepen.io/yuhomyan/details/OJMejWJ */
 }
 
 .fade-out {
-  animation: fadeOut ease 3s;
+  animation: fadeOut ease 0.75s;
 }
 
 @keyframes fadeOut {

@@ -11,18 +11,17 @@ const Game = (function () {
   }
 
   // Private function init
-  const _init = function (url, playerToken, Token) {
+  const _init = function (url, playerToken, Token) {    
     configMap.apiUrl = url
     configMap.playerToken = playerToken
     configMap.Token = Token
+    configMap.Color = getColor()
     console.log(configMap)
     Game.Data.init(configMap.apiUrl, "production");
     Game.Model.init();
     Game.Template.init();
-    _getCurrentGameState()
-    setInterval(_getCurrentGameState, 1500)
+    pollRate = setInterval(_getCurrentGameState, 2500)
   }
-  // Waarde/object geretourneerd aan de outer scope
 
   let initializeOnce = false
 
@@ -38,16 +37,20 @@ const Game = (function () {
     Game.Model.getGameState(configMap.Token)
       .then(data => {
         stateMap.gameState = data
-        Game.Reversi.init(stateMap.gameState.board);
-        if (!initializeOnce) {
-          configMap.Color = getColor()
-          initializeOnce = true
+        if(!initializeOnce) {
+          Game.Reversi.init(stateMap.gameState.board);
+          initializeOnce = true;
+        } else {
+          Game.Reversi.updateBoard(JSON.parse(stateMap.gameState.board));
         }
         if(data.finished == "True") {
+          clearInterval(pollRate);
           const currentUrl = window.location;
           const redirectUrl = `${currentUrl.protocol}//${currentUrl.host}/Game/Result/${configMap.Token}`;
-          console.log(redirectUrl);
-          window.location.href = redirectUrl;
+          const randomDelay = Math.floor(Math.random() * 2000) + 3000;
+          setTimeout(() => {
+            window.location.href = redirectUrl;
+          }, randomDelay);
         }
       })
       .catch(error => {

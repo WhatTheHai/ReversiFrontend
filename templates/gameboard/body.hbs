@@ -1,0 +1,9 @@
+{{#each board}}
+    <div class="row-container row-{{@index}}">
+        {{#each this}}
+            <div class="grid-item" data-row="{{@../index}}" data-col="{{@index}}">
+                {{>fiche player = this}}
+            </div>
+        {{/each}}
+    </div>
+{{/each}}

@@ -26,15 +26,13 @@ var Game = function () {
     configMap.apiUrl = url;
     configMap.playerToken = playerToken;
     configMap.Token = Token;
+    configMap.Color = getColor();
     console.log(configMap);
     Game.Data.init(configMap.apiUrl, "production");
     Game.Model.init();
     Game.Template.init();
-    _getCurrentGameState();
-    setInterval(_getCurrentGameState, 1500);
+    pollRate = setInterval(_getCurrentGameState, 2500);
   };
-  // Waarde/object geretourneerd aan de outer scope
-
   var initializeOnce = false;
   var getColor = function getColor() {
     if (configMap.playerToken == stateMap.gameState.player1Token) {
@@ -46,16 +44,20 @@ var Game = function () {
   var _getCurrentGameState = function _getCurrentGameState() {
     Game.Model.getGameState(configMap.Token).then(function (data) {
       stateMap.gameState = data;
-      Game.Reversi.init(stateMap.gameState.board);
       if (!initializeOnce) {
-        configMap.Color = getColor();
+        Game.Reversi.init(stateMap.gameState.board);
         initializeOnce = true;
+      } else {
+        Game.Reversi.updateBoard(JSON.parse(stateMap.gameState.board));
       }
       if (data.finished == "True") {
+        clearInterval(pollRate);
         var currentUrl = window.location;
         var redirectUrl = "".concat(currentUrl.protocol, "//").concat(currentUrl.host, "/Game/Result/").concat(configMap.Token);
-        console.log(redirectUrl);
-        window.location.href = redirectUrl;
+        var randomDelay = Math.floor(Math.random() * 2000) + 3000;
+        setTimeout(function () {
+          window.location.href = redirectUrl;
+        }, randomDelay);
       }
     })["catch"](function (error) {
       console.log(error.message);
@@ -108,7 +110,7 @@ var FeedbackWidget = /*#__PURE__*/function () {
         elem.style.display = "none";
         elem.classList.remove("fade-out");
         elem.classList.remove("fade-in");
-      }, 3000);
+      }, 749);
     }
   }, {
     key: "log",
@@ -170,6 +172,10 @@ Game.Data = function () {
       });
     }
   };
+  var getDogFact = function getDogFact() {
+    var url = 'https://dogapi.dog/api/v2/facts';
+    return get(url);
+  };
   var put = function put(url, data) {
     if (stateMap.enviroment === 'development') {
       return getMockData(url);
@@ -210,7 +216,8 @@ Game.Data = function () {
   return {
     get: get,
     put: put,
-    init: _init
+    init: _init,
+    getDogFact: getDogFact
   };
 }();
 Game.Model = function () {
@@ -245,17 +252,16 @@ Game.Reversi = function () {
   var configMap = {};
   var _init = function _init(gameboard) {
     var boardData = JSON.parse(gameboard);
-    _loadBoard(boardData);
+    _initBoard(boardData);
   };
   var cellClickListener = function cellClickListener() {
-    var x = parseInt(this.dataset.col);
-    var y = parseInt(this.dataset.row);
+    var gridItem = event.target.closest('.empty-piece');
+    if (!gridItem) return; // Click occurred outside a grid item
+
+    var x = parseInt(gridItem.parentElement.dataset.col);
+    var y = parseInt(gridItem.parentElement.dataset.row);
     var color = Game.configMap.Color;
-    if (color == 'black') {
-      _showFiche(x, y, 'black');
-    } else {
-      _showFiche(x, y, 'white');
-    }
+    _showFiche(x, y, color === 'black' ? 'black' : 'white');
     if (color == 'black' || color == 'white') {
       Game.Reversi.doMove(x, y).then(function () {
         //Succes -> check game state
@@ -275,94 +281,92 @@ Game.Reversi = function () {
     return Game.Data.put('/game/move', move);
   };
   function _showFiche(x, y, color) {
-    var cell = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
     var cellSelector = ".grid-item[data-row=\"".concat(y, "\"][data-col=\"").concat(x, "\"]");
-    cell = cell || document.querySelector(cellSelector);
-
-    // Incase the board or cell is incorrect, helpful for debugging
-    if (!cell) {
-      console.error("Grid item at row ".concat(x, ", column ").concat(y, " not found."));
-      return;
-    }
-    // Get the current fiche
-    var existingFiche = cell.querySelector('.fiche');
-
-    // Remove if it's a different colour, main purpose is for when
-    // the data changes.
-    if (existingFiche) {
-      if (existingFiche.classList.contains("".concat(color, "-piece"))) {
-        return;
-      } else {
-        existingFiche.remove();
-      }
-    }
-
-    // If it's a nothing piece, it's clickable, else if it's either a black or white piece
-    // add the piece and make it unclickable for the user.
-    if (color) {
-      // Create a data object for the partial to render
-      var data = {
-        color: color
-      };
-      var fiche = document.createElement('div');
-      fiche.className = "".concat(color, "-piece fiche");
-      cell.appendChild(fiche);
-      cell.removeEventListener('click', cellClickListener);
-    } else {
-      // If the color is blank, remove the fiche from the cell.
-      cell.innerHTML = '';
-      cell.addEventListener('click', cellClickListener);
-    }
+    var cellElement = document.querySelector(cellSelector);
+    var fiche = document.createElement("div");
+    fiche.classList.add("fiche");
+    fiche.classList.add("".concat(color, "-piece"));
+    cellElement.innerHTML = "";
+    cellElement.append(fiche);
   }
-  function _loadBoard(boardData) {
+  function _initBoard(boardData) {
     var boardContainer = document.getElementById('board-container');
-    var boardSize = boardData.length;
-    for (var row = 0; row < boardSize; row++) {
-      for (var col = 0; col < boardSize; col++) {
-        var cellSelector = ".grid-item[data-row=\"".concat(row, "\"][data-col=\"").concat(col, "\"]");
-        var existingCell = document.querySelector(cellSelector);
-        var cell = existingCell || document.createElement('div');
-        cell.className = 'grid-item';
-        cell.dataset.row = row;
-        cell.dataset.col = col;
-        if (!existingCell) {
-          boardContainer.appendChild(cell);
-        }
-        var cellValue = boardData[row][col];
-        var color = '';
-        if (cellValue === 1) {
-          color = 'white';
-        } else if (cellValue === 2) {
-          color = 'black';
-        }
-        _showFiche(row, col, color, cell);
-        if (!existingCell && !color) {
-          cell.addEventListener('click', cellClickListener);
-        }
-      }
-    }
+    boardContainer.innerHTML = Game.Template.parseTemplate("gameboard.body", {
+      board: boardData
+    });
   }
-  return {
-    init: _init,
-    showFiche: _showFiche,
-    showBoard: _loadBoard,
-    doMove: _doMove
-  };
-}();
-Game.Template = function () {
-  var _getTemplate = function _getTemplate(templateName) {
-    var templates = spa_templates.templates;
-    var _iterator = _createForOfIteratorHelper(templateName.split(".")),
+  function _updateBoard(boardData) {
+    var boardContainer = document.getElementById('board-container');
+    var gridItems = boardContainer.querySelectorAll('.grid-item');
+    var _iterator = _createForOfIteratorHelper(gridItems),
       _step;
     try {
       for (_iterator.s(); !(_step = _iterator.n()).done;) {
-        var tl = _step.value;
-        templates = templates[tl];
+        var gridItem = _step.value;
+        var x = parseInt(gridItem.dataset.col);
+        var y = parseInt(gridItem.dataset.row);
+        var color = boardData[y][x];
+
+        // Get the current fiche element from the gridItem
+        var currentFiche = gridItem.querySelector(".fiche");
+        var currentColorValue = void 0; // To store the equivalent color value: none = 0, white = 1, black = 2
+
+        if (currentFiche) {
+          // If there's a fiche, determine its current color value
+          if (currentFiche.classList.contains("white-piece")) {
+            currentColorValue = 1;
+          } else if (currentFiche.classList.contains("black-piece")) {
+            currentColorValue = 2;
+          } else {
+            currentColorValue = 0;
+          }
+        } else {
+          currentColorValue = 0;
+        }
+        if (currentColorValue !== color) {
+          // Colors don't match, replace the fiche
+          gridItem.innerHTML = ""; // Clear any existing fiche
+          var fiche = document.createElement("div");
+          if (color === 1) {
+            fiche.classList.add("fiche", "white-piece");
+          } else if (color === 2) {
+            fiche.classList.add("fiche", "black-piece");
+          } else {
+            fiche.classList.add("fiche", "empty-piece");
+            fiche.addEventListener("click", cellClickListener);
+          }
+          gridItem.append(fiche);
+        }
       }
     } catch (err) {
       _iterator.e(err);
     } finally {
       _iterator.f();
+    }
+  }
+  return {
+    init: _init,
+    showFiche: _showFiche,
+    initBoard: _initBoard,
+    updateBoard: _updateBoard,
+    doMove: _doMove,
+    cellClickListener: cellClickListener
+  };
+}();
+Game.Template = function () {
+  var _getTemplate = function _getTemplate(templateName) {
+    var templates = spa_templates.templates;
+    var _iterator2 = _createForOfIteratorHelper(templateName.split('.')),
+      _step2;
+    try {
+      for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+        var tl = _step2.value;
+        templates = templates[tl];
+      }
+    } catch (err) {
+      _iterator2.e(err);
+    } finally {
+      _iterator2.f();
     }
     return templates;
   };
@@ -371,7 +375,12 @@ Game.Template = function () {
     return template(data);
   };
   var _init = function _init() {
-    console.log('Game template init!');
+    Handlebars.registerHelper('isWhitePiece', function (player) {
+      return player === 1;
+    });
+    Handlebars.registerHelper('isBlackPiece', function (player) {
+      return player === 2;
+    });
   };
   return {
     parseTemplate: _parseTemplate,
