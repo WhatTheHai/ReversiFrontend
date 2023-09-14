@@ -3,18 +3,18 @@ Game.Reversi = (function () {
 
   const _init = function (gameboard) {
     const boardData = JSON.parse(gameboard)
-    _loadBoard(boardData)
+    _initBoard(boardData)
   }
 
-  const cellClickListener = function () {
-    const x = parseInt(this.dataset.col)
-    const y = parseInt(this.dataset.row)
+  const cellClickListener =  function () {
+    const gridItem = event.target.closest('.empty-piece');
+    if (!gridItem) return; // Click occurred outside a grid item
+
+
+    const x = parseInt(gridItem.parentElement.dataset.col)
+    const y = parseInt(gridItem.parentElement.dataset.row)
     const color = Game.configMap.Color
-    if (color == 'black') {
-      _showFiche(x, y, 'black')
-    } else {
-      _showFiche(x, y, 'white')
-    }
+    _showFiche(x, y, color === 'black' ? 'black' : 'white');
     if (color == 'black' || color == 'white') {
       Game.Reversi.doMove(x, y)
         .then(() => {
@@ -37,87 +37,77 @@ Game.Reversi = (function () {
     return Game.Data.put('/game/move', move)
   }
 
-  function _showFiche (x, y, color, cell = null) {
+  function _showFiche (x, y, color) {
     const cellSelector = `.grid-item[data-row="${y}"][data-col="${x}"]`
-    cell = cell || document.querySelector(cellSelector)
+    let cellElement = document.querySelector(cellSelector);
 
-    // Incase the board or cell is incorrect, helpful for debugging
-    if (!cell) {
-      console.error(`Grid item at row ${x}, column ${y} not found.`)
-      return
-    }
-    // Get the current fiche
-    const existingFiche = cell.querySelector('.fiche')
+    let fiche = document.createElement("div");
+    fiche.classList.add("fiche");
+    fiche.classList.add(`${color}-piece`);
 
-    // Remove if it's a different colour, main purpose is for when
-    // the data changes.
-    if (existingFiche) {
-      if (existingFiche.classList.contains(`${color}-piece`)) {
-        return
-      } else {
-        existingFiche.remove()
-      }
-    }
-
-    // If it's a nothing piece, it's clickable, else if it's either a black or white piece
-    // add the piece and make it unclickable for the user.
-    if (color) {
-      // Create a data object for the partial to render
-      const data = {
-        color: color
-      }
-
-      const fiche = document.createElement('div')
-      fiche.className = `${color}-piece fiche`
-      cell.appendChild(fiche)
-      cell.removeEventListener('click', cellClickListener)
-    } else {
-      // If the color is blank, remove the fiche from the cell.
-      cell.innerHTML = ''
-      cell.addEventListener('click', cellClickListener)
-    }
+    cellElement.innerHTML = "";
+    cellElement.append(fiche);
   }
 
-  function _loadBoard (boardData) {
+  function _initBoard (boardData) {
     const boardContainer = document.getElementById('board-container')
-    const boardSize = boardData.length
 
-    for (let row = 0; row < boardSize; row++) {
-      for (let col = 0; col < boardSize; col++) {
-        const cellSelector = `.grid-item[data-row="${row}"][data-col="${col}"]`
-        const existingCell = document.querySelector(cellSelector)
-        const cell = existingCell || document.createElement('div')
+    boardContainer.innerHTML = Game.Template.parseTemplate("gameboard.body", {
+        board: boardData,
+    });
+  }
 
-        cell.className = 'grid-item'
-        cell.dataset.row = row
-        cell.dataset.col = col
+  function _updateBoard(boardData) {
+    const boardContainer = document.getElementById('board-container');
+    const gridItems = boardContainer.querySelectorAll('.grid-item');
+  
+  
+    for (const gridItem of gridItems) {
+      const x = parseInt(gridItem.dataset.col);
+      const y = parseInt(gridItem.dataset.row);
+      const color = boardData[y][x];
+  
+      // Get the current fiche element from the gridItem
+      const currentFiche = gridItem.querySelector(".fiche");
+      let currentColorValue;
 
-        if (!existingCell) {
-          boardContainer.appendChild(cell)
+      if (currentFiche) {
+        // If there's a fiche, determine its current color value
+        if (currentFiche.classList.contains("white-piece")) {
+          currentColorValue = 1;
+        } else if (currentFiche.classList.contains("black-piece")) {
+          currentColorValue = 2;
+        } else {
+          currentColorValue = 0;
         }
+      } else {
+        currentColorValue = 0;
+      }
 
-        const cellValue = boardData[row][col]
-        let color = ''
-
-        if (cellValue === 1) {
-          color = 'white'
-        } else if (cellValue === 2) {
-          color = 'black'
+      if (currentColorValue !== color) {
+        // Colors don't match, replace the fiche
+        gridItem.innerHTML = ""; // Clear any existing fiche
+        const fiche = document.createElement("div");
+        if (color === 1) {
+          fiche.classList.add("fiche", "white-piece");
+        } else if (color === 2) {
+          fiche.classList.add("fiche", "black-piece");
+        } else {
+          fiche.classList.add("fiche", "empty-piece");
+          fiche.addEventListener("click", cellClickListener);
         }
-
-        _showFiche(row, col, color, cell)
-
-        if (!existingCell && !color) {
-          cell.addEventListener('click', cellClickListener)
-        }
+        gridItem.append(fiche);
       }
     }
   }
+  
 
   return {
     init: _init,
     showFiche: _showFiche,
-    showBoard: _loadBoard,
-    doMove: _doMove
+    initBoard: _initBoard,
+    updateBoard: _updateBoard,
+    doMove: _doMove,
+    cellClickListener: cellClickListener
   }
 })()
