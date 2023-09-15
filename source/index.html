@@ -19,23 +19,7 @@
 </head>
 
 <body>
-  <div id="feedback-container" class="fade-in feedback-container--success" style="display: none">
-    <header class="feedback-top-bar">
-      <button class="button button--state-close" onclick="feedbackWidget.hide()"> 
-        X
-      </button>
-    </header>
-    <article class="feedback-text">
-      <i class="feedback-text--emoji">✔️</i>
-      <p class="feedback-text--text">
-        Mike wants to participate in your game. Agree?
-      </p>
-    </article>
-    <footer>
-      <button class="button button--state-success">Accept</button>
-      <button class="button button--state-danger">Decline</button>
-    </footer>
-  </div>
+  <div id="feedback-container"></div>
   <div id="board-container" class="board-container"></div>
   <script>
     $(function () {

@@ -74,6 +74,7 @@
 
 .feedback-text--emoji {
   font-size: 50px;
+  flex-direction: column;
   margin-right: 15px;
   display: block;
 }
@@ -84,11 +85,14 @@
   }
 }
 
+.feedback-text--content {
+  display: flex;
+  flex-direction: column;
+}
 
 .feedback-text--text {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   margin: 0;
   word-wrap: break-word;
   white-space: pre-wrap;
@@ -96,8 +100,20 @@
   font-weight: bold;
 }
 
+.feedback-text--quote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 2px 3px;
+  text-align: center;
+  color: #1b1b1b;
+  font-weight: lighter;
+  font-size: 10px;
+}
+
 @media only screen and (max-width: 600px) {
-  .feedback-text--text {
+  .feedback-text--text,
+  .feedback-text--quote {
     font-size: 8px;
   }
 }

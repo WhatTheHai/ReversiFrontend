@@ -1,0 +1,22 @@
+<div id="feedback-container" class="fade-in feedback-container--{{status}}"">
+    <header class=" feedback-top-bar">
+    <button class="button button--state-close" onclick="feedbackWidget.hide()">
+        X
+    </button>
+    </header>
+    <article class="feedback-text">
+        <i class="feedback-text--emoji">{{emoji}}</i>
+        <div class="feedback-text--content">
+            <p class="feedback-text--text">
+                {{text}}
+            </p>
+            <p class="feedback-text--quote">
+                {{quote}}
+            </p>
+        </div>
+    </article>
+    <footer>
+        <button class="button button--state-success" onclick="feedbackWidget.hide()">Accept</button>
+        <button class="button button--state-danger" onclick="feedbackWidget.hide()">Decline</button>
+    </footer>
+</div>

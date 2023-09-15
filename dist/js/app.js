@@ -20,6 +20,7 @@ var Game = function () {
     Token: '',
     Color: ''
   };
+  var pollRate;
 
   // Private function init
   var _init = function _init(url, playerToken, Token) {
@@ -27,10 +28,10 @@ var Game = function () {
     configMap.playerToken = playerToken;
     configMap.Token = Token;
     configMap.Color = getColor();
-    console.log(configMap);
     Game.Data.init(configMap.apiUrl, "production");
     Game.Model.init();
     Game.Template.init();
+    Game.API.init();
     pollRate = setInterval(_getCurrentGameState, 2500);
   };
   var initializeOnce = false;
@@ -42,12 +43,18 @@ var Game = function () {
     }
   };
   var _getCurrentGameState = function _getCurrentGameState() {
-    Game.Model.getGameState(configMap.Token).then(function (data) {
-      stateMap.gameState = data;
+    Game.API.getGameState(configMap.Token).then(function (data) {
       if (!initializeOnce) {
+        stateMap.gameState = data;
         Game.Reversi.init(stateMap.gameState.board);
+        Game.Stats.init();
         initializeOnce = true;
       } else {
+        if (stateMap.gameState.board != data.board) {
+          console.log("not same");
+          Game.Stats.addOccupiedChartData(data.board);
+        }
+        stateMap.gameState = data;
         Game.Reversi.updateBoard(JSON.parse(stateMap.gameState.board));
       }
       if (data.finished == "True") {
@@ -84,21 +91,38 @@ var FeedbackWidget = /*#__PURE__*/function () {
   }, {
     key: "show",
     value: function show(message, type) {
+      var _this = this;
       var elem = document.getElementById(this._elementId);
+      var typeEmoji = "✔️";
+      var fact = "Placeholder";
       elem.style.display = "block";
-      var textElement = elem.querySelector('.feedback-text--text');
-      textElement.textContent = message;
-      if (type == "success") {
-        $(elem).attr("class", "feedback-container--success");
-        $(".feedback-text--emoji").text("✔️");
-      } else {
-        $(elem).attr("class", "feedback-container--danger");
-        $(".feedback-text--emoji").text("❌");
+      // let textElement = elem.querySelector('.feedback-text--text');
+      // textElement.textContent = message;
+      // if (type == "success") {
+      //   $(elem).attr("class","feedback-container--success");
+      //   $(".feedback-text--emoji").text("✔️");
+      // } else {
+      //   $(elem).attr("class", "feedback-container--danger");
+      //   $(".feedback-text--emoji").text("❌");
+      // }
+      // $(elem).addClass("fade-in");
+
+      if (type != "success") {
+        type = "danger";
+        typeEmoji = "❌";
       }
-      $(elem).addClass("fade-in");
-      this.log({
-        message: message,
-        type: type
+      Game.API.getDogFact().then(function (data) {
+        var fact = data.data[0].attributes.body;
+        elem.outerHTML = Game.Template.parseTemplate("feedbackWidget.body", {
+          status: type,
+          emoji: typeEmoji,
+          text: message,
+          quote: fact
+        });
+        _this.log({
+          message: message,
+          type: type
+        });
       });
     }
   }, {
@@ -142,6 +166,37 @@ var FeedbackWidget = /*#__PURE__*/function () {
   }]);
   return FeedbackWidget;
 }();
+Game.API = function () {
+  var _init = function _init() {};
+  var apiLink = function apiLink() {
+    return Game.configMap.apiUrl;
+  };
+  var getGameState = function getGameState(token) {
+    var url = apiLink() + "/Game/".concat(token);
+    return Game.Data.get(url).then(function (data) {
+      return data;
+    })["catch"](function (error) {
+      console.log(error.message);
+    });
+  };
+  var makeMove = function makeMove(move) {
+    return Game.Data.put(apiLink() + '/Game/move', move);
+  };
+  var getDogFact = function getDogFact() {
+    var url = 'https://dogapi.dog/api/v2/facts';
+    return Game.Data.get(url).then(function (data) {
+      return data;
+    })["catch"](function (error) {
+      console.log(error.message);
+    });
+  };
+  return {
+    init: _init,
+    getGameState: getGameState,
+    makeMove: makeMove,
+    getDogFact: getDogFact
+  };
+}();
 Game.Data = function () {
   var stateMap = {
     enviroment: 'production'
@@ -165,22 +220,18 @@ Game.Data = function () {
     if (stateMap.enviroment == 'development') {
       return getMockData(url);
     } else if (stateMap.enviroment == 'production') {
-      return $.get(configMap.url + url).then(function (r) {
+      return $.get(url).then(function (r) {
         return r;
       })["catch"](function (e) {
         console.log(e.message);
       });
     }
   };
-  var getDogFact = function getDogFact() {
-    var url = 'https://dogapi.dog/api/v2/facts';
-    return get(url);
-  };
   var put = function put(url, data) {
     if (stateMap.enviroment === 'development') {
       return getMockData(url);
     } else if (stateMap.enviroment === 'production') {
-      return fetch(configMap.url + url, {
+      return fetch(url, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -196,10 +247,7 @@ Game.Data = function () {
             throw new Error('Request failed with status: ' + response.status);
           }
         }
-        // Handle successful response
         return response.json();
-      }).then(function (data) {
-        // Process the data from a successful response
       })["catch"](function (error) {
         console.log(error.message); // Display the error message
       });
@@ -216,13 +264,12 @@ Game.Data = function () {
   return {
     get: get,
     put: put,
-    init: _init,
-    getDogFact: getDogFact
+    init: _init
   };
 }();
 Game.Model = function () {
   var configMap = {};
-  var privateInit = function privateInit() {};
+  var _Init = function _Init() {};
   var _getWeather = function _getWeather(url) {
     return Game.Data.get(url).then(function (data) {
       if (data['main']['temp']) {
@@ -234,18 +281,9 @@ Game.Model = function () {
       console.log(error.message);
     });
   };
-  var _getGameState = function _getGameState(token) {
-    var url = "/Game/".concat(token);
-    return Game.Data.get(url).then(function (data) {
-      return data;
-    })["catch"](function (error) {
-      console.log(error.message);
-    });
-  };
   return {
-    init: privateInit,
-    getWeather: _getWeather,
-    getGameState: _getGameState
+    init: _Init,
+    getWeather: _getWeather
   };
 }();
 Game.Reversi = function () {
@@ -278,7 +316,7 @@ Game.Reversi = function () {
       GameToken: Game.configMap.Token,
       PlayerToken: Game.configMap.playerToken
     };
-    return Game.Data.put('/game/move', move);
+    return Game.API.makeMove(move);
   };
   function _showFiche(x, y, color) {
     var cellSelector = ".grid-item[data-row=\"".concat(y, "\"][data-col=\"").concat(x, "\"]");
@@ -309,8 +347,7 @@ Game.Reversi = function () {
 
         // Get the current fiche element from the gridItem
         var currentFiche = gridItem.querySelector(".fiche");
-        var currentColorValue = void 0; // To store the equivalent color value: none = 0, white = 1, black = 2
-
+        var currentColorValue = void 0;
         if (currentFiche) {
           // If there's a fiche, determine its current color value
           if (currentFiche.classList.contains("white-piece")) {
@@ -353,20 +390,133 @@ Game.Reversi = function () {
     cellClickListener: cellClickListener
   };
 }();
-Game.Template = function () {
-  var _getTemplate = function _getTemplate(templateName) {
-    var templates = spa_templates.templates;
-    var _iterator2 = _createForOfIteratorHelper(templateName.split('.')),
+Game.Stats = function () {
+  var configMap = {};
+  var occupiedChart, capturedChart;
+  function _init() {
+    _initCharts();
+  }
+  function _initCharts() {
+    occupiedChart = new Chart(document.getElementById('occupiedChart').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: [],
+        // Dynamically set, so no need to set this.
+        datasets: [{
+          label: 'White',
+          data: [],
+          borderColor: 'gray',
+          backgroundColor: 'white'
+        }, {
+          label: 'Black',
+          data: [],
+          borderColor: 'black',
+          backgroundColor: 'black'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100
+          }
+        }
+      }
+    });
+    capturedChart = new Chart(document.getElementById('capturedChart').getContext('2d'), {
+      type: 'bar',
+      // Bar chart
+      data: {
+        labels: ['White', 'Black'],
+        // Labels for the players
+        datasets: [{
+          label: 'Captured Opponent Pieces',
+          data: [0, 0],
+          backgroundColor: ['gray', 'black']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        // Set to false to control the aspect ratio
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+  function addOccupiedChartData(board) {
+    if (!occupiedChart) {
+      console.error("Something's wrong with occupiedChart!");
+      return;
+    }
+    var whites = 0;
+    var blacks = 0;
+    var _iterator2 = _createForOfIteratorHelper(board),
       _step2;
     try {
       for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-        var tl = _step2.value;
-        templates = templates[tl];
+        var row = _step2.value;
+        var _iterator3 = _createForOfIteratorHelper(row),
+          _step3;
+        try {
+          for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+            var value = _step3.value;
+            if (value == 1) {
+              whites++;
+            } else if (value == 2) {
+              blacks++;
+            }
+          }
+        } catch (err) {
+          _iterator3.e(err);
+        } finally {
+          _iterator3.f();
+        }
       }
     } catch (err) {
       _iterator2.e(err);
     } finally {
       _iterator2.f();
+    }
+    var whitePercentage = whites / 64 * 100;
+    var blackPercentage = blacks / 64 * 100;
+
+    // Adds date
+    var currentDate = new Date();
+    var label = currentDate.toLocaleTimeString(); // You can use a timestamp as the label
+    occupiedChart.data.labels.push(label);
+
+    // Data points
+    occupiedChart.data.datasets[0].data.push(whitePercentage);
+    occupiedChart.data.datasets[1].data.push(blackPercentage);
+
+    // Update the chart
+    occupiedChart.update();
+  }
+  return {
+    init: _init,
+    addOccupiedChartData: addOccupiedChartData
+  };
+}();
+Game.Template = function () {
+  var _getTemplate = function _getTemplate(templateName) {
+    var templates = spa_templates.templates;
+    var _iterator4 = _createForOfIteratorHelper(templateName.split('.')),
+      _step4;
+    try {
+      for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+        var tl = _step4.value;
+        templates = templates[tl];
+      }
+    } catch (err) {
+      _iterator4.e(err);
+    } finally {
+      _iterator4.f();
     }
     return templates;
   };

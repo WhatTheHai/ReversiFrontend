@@ -10,16 +10,18 @@ const Game = (function () {
     Color: ''
   }
 
+  let pollRate;
+
   // Private function init
   const _init = function (url, playerToken, Token) {    
     configMap.apiUrl = url
     configMap.playerToken = playerToken
     configMap.Token = Token
     configMap.Color = getColor()
-    console.log(configMap)
     Game.Data.init(configMap.apiUrl, "production");
     Game.Model.init();
     Game.Template.init();
+    Game.API.init();
     pollRate = setInterval(_getCurrentGameState, 2500)
   }
 
@@ -34,13 +36,19 @@ const Game = (function () {
   }
 
   const _getCurrentGameState = function () {
-    Game.Model.getGameState(configMap.Token)
+    Game.API.getGameState(configMap.Token)
       .then(data => {
-        stateMap.gameState = data
         if(!initializeOnce) {
+          stateMap.gameState = data
           Game.Reversi.init(stateMap.gameState.board);
+          Game.Stats.init();
           initializeOnce = true;
         } else {
+          if(stateMap.gameState.board != data.board) {
+            console.log("not same");
+            Game.Stats.addOccupiedChartData(data.board);
+          }
+          stateMap.gameState = data
           Game.Reversi.updateBoard(JSON.parse(stateMap.gameState.board));
         }
         if(data.finished == "True") {

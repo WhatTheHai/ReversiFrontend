@@ -21,7 +21,7 @@ Game.Data = (function () {
     if (stateMap.enviroment == 'development') {
       return getMockData(url)
     } else if (stateMap.enviroment == 'production') {
-      return $.get(configMap.url + url)
+      return $.get(url)
         .then(r => {
           return r
         })
@@ -31,16 +31,11 @@ Game.Data = (function () {
     }
   }
 
-  const getDogFact = function () {
-    let url = 'https://dogapi.dog/api/v2/facts';
-    return get(url);
-  }
-
   const put = function (url, data) {
     if (stateMap.enviroment === 'development') {
       return getMockData(url)
     } else if (stateMap.enviroment === 'production') {
-      return fetch(configMap.url + url, {
+      return fetch(url, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -57,11 +52,7 @@ Game.Data = (function () {
               throw new Error('Request failed with status: ' + response.status)
             }
           }
-          // Handle successful response
           return response.json()
-        })
-        .then(data => {
-          // Process the data from a successful response
         })
         .catch(error => {
           console.log(error.message) // Display the error message
@@ -80,7 +71,6 @@ Game.Data = (function () {
   return {
     get: get,
     put: put,
-    init: _init,
-    getDogFact: getDogFact
+    init: _init
   }
 })();

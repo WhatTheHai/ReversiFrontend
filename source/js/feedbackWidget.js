@@ -8,18 +8,35 @@ class FeedbackWidget {
   }
   show(message, type) {
     let elem = document.getElementById(this._elementId);
+    let typeEmoji = "✔️";
+    let fact = "Placeholder";
     elem.style.display = "block";
-    let textElement = elem.querySelector('.feedback-text--text');
-    textElement.textContent = message;
-    if (type == "success") {
-      $(elem).attr("class","feedback-container--success");
-      $(".feedback-text--emoji").text("✔️");
-    } else {
-      $(elem).attr("class", "feedback-container--danger");
-      $(".feedback-text--emoji").text("❌");
+    // let textElement = elem.querySelector('.feedback-text--text');
+    // textElement.textContent = message;
+    // if (type == "success") {
+    //   $(elem).attr("class","feedback-container--success");
+    //   $(".feedback-text--emoji").text("✔️");
+    // } else {
+    //   $(elem).attr("class", "feedback-container--danger");
+    //   $(".feedback-text--emoji").text("❌");
+    // }
+    // $(elem).addClass("fade-in");
+
+    if (type != "success") {
+      type = "danger"
+      typeEmoji = "❌"
     }
-    $(elem).addClass("fade-in");
-    this.log({ message: message, type: type });
+
+    Game.API.getDogFact().then(data => {
+      const fact = data.data[0].attributes.body;
+      elem.outerHTML = Game.Template.parseTemplate("feedbackWidget.body", {
+          status: type,
+          emoji: typeEmoji,
+          text: message,
+          quote: fact
+      });
+      this.log({ message: message, type: type });
+  });
   }
   
   hide() {

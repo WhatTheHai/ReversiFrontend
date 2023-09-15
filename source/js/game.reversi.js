@@ -34,7 +34,7 @@ Game.Reversi = (function () {
       GameToken: Game.configMap.Token,
       PlayerToken: Game.configMap.playerToken
     }
-    return Game.Data.put('/game/move', move)
+    return Game.API.makeMove(move)
   }
 
   function _showFiche (x, y, color) {
