@@ -1,7 +1,7 @@
 Game.Data = (function () {
   let stateMap = { enviroment: 'production' }
   let configMap = {
-    url: "",
+    url: '',
     mock: [
       {
         url: '/api/Game/Turn',
@@ -61,7 +61,7 @@ Game.Data = (function () {
   }
 
   const _init = function (url, environment) {
-    configMap.url = url;
+    configMap.url = url
     if (environment != 'production' && environment != 'development') {
       throw new Error('Environment parameter is invalid')
     }
@@ -73,4 +73,4 @@ Game.Data = (function () {
     put: put,
     init: _init
   }
-})();
+})()

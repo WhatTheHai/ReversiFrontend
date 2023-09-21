@@ -10,18 +10,18 @@ const Game = (function () {
     Color: ''
   }
 
-  let pollRate;
+  let pollRate
 
   // Private function init
-  const _init = function (url, playerToken, Token) {    
+  const _init = function (url, playerToken, Token) {
     configMap.apiUrl = url
     configMap.playerToken = playerToken
     configMap.Token = Token
     configMap.Color = getColor()
-    Game.Data.init(configMap.apiUrl, "production");
-    Game.Model.init();
-    Game.Template.init();
-    Game.API.init();
+    Game.Data.init(configMap.apiUrl, 'production')
+    Game.Model.init()
+    Game.Template.init()
+    Game.API.init()
     pollRate = setInterval(_getCurrentGameState, 2500)
   }
 
@@ -36,29 +36,37 @@ const Game = (function () {
   }
 
   const _getCurrentGameState = function () {
+    console.log(stateMap.gameState.isTurn)
     Game.API.getGameState(configMap.Token)
       .then(data => {
-        if(!initializeOnce) {
+        if (!initializeOnce) {
           stateMap.gameState = data
-          Game.Reversi.init(stateMap.gameState.board);
-          Game.Stats.init();
-          initializeOnce = true;
+          Game.Reversi.init(stateMap.gameState.board)
+          Game.Stats.init()
+          initializeOnce = true
         } else {
-          if(stateMap.gameState.board != data.board) {
-            console.log("not same");
-            Game.Stats.addOccupiedChartData(data.board);
+          if (stateMap.gameState.board != data.board) {
+            // Board has been updated
+            // As a hindsight, I could've checked for this and then update the board, but due to time constraint, I cannot change this.
+            Game.Stats.addOccupiedChartData(data.board)
+            //data.board = newer board, gamestate is older board
+            Game.Stats.addCapturedChartData(
+              stateMap.gameState.board,
+              data.board
+            )
           }
           stateMap.gameState = data
-          Game.Reversi.updateBoard(JSON.parse(stateMap.gameState.board));
+          Game.Reversi.updateBoard(JSON.parse(stateMap.gameState.board))
+          Game.Reversi.turnStatus(stateMap.gameState.isTurn)
         }
-        if(data.finished == "True") {
-          clearInterval(pollRate);
-          const currentUrl = window.location;
-          const redirectUrl = `${currentUrl.protocol}//${currentUrl.host}/Game/Result/${configMap.Token}`;
-          const randomDelay = Math.floor(Math.random() * 2000) + 3000;
+        if (data.finished == 'True') {
+          clearInterval(pollRate)
+          const currentUrl = window.location
+          const redirectUrl = `${currentUrl.protocol}//${currentUrl.host}/Game/Result/${configMap.Token}`
+          const randomDelay = Math.floor(Math.random() * 2000) + 3000
           setTimeout(() => {
-            window.location.href = redirectUrl;
-          }, randomDelay);
+            window.location.href = redirectUrl
+          }, randomDelay)
         }
       })
       .catch(error => {
@@ -72,4 +80,4 @@ const Game = (function () {
     stateMap: stateMap,
     getCurrentGameState: _getCurrentGameState
   }
-})();
+})()

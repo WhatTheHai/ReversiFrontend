@@ -16,7 +16,7 @@ Game.Template = (function () {
     Handlebars.registerHelper('isWhitePiece', function (player) {
       return player === 1
     })
-    
+
     Handlebars.registerHelper('isBlackPiece', function (player) {
       return player === 2
     })

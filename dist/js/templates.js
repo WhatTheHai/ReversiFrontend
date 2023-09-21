@@ -44,6 +44,19 @@ this["spa_templates"]["templates"]["feedbackWidget"]["body"] = Handlebars.templa
     + alias4(((helper = (helper = lookupProperty(helpers,"quote") || (depth0 != null ? lookupProperty(depth0,"quote") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"quote","hash":{},"data":data,"loc":{"start":{"line":14,"column":16},"end":{"line":14,"column":25}}}) : helper)))
     + "\r\n            </p>\r\n        </div>\r\n    </article>\r\n    <footer>\r\n        <button class=\"button button--state-success\" onclick=\"feedbackWidget.hide()\">Accept</button>\r\n        <button class=\"button button--state-danger\" onclick=\"feedbackWidget.hide()\">Decline</button>\r\n    </footer>\r\n</div>";
 },"useData":true});
+this["spa_templates"]["templates"]["turn"] = this["spa_templates"]["templates"]["turn"] || {};
+this["spa_templates"]["templates"]["turn"]["turn-text"] = Handlebars.template({"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
+    var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "<div>\r\n<h5>"
+    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"text") || (depth0 != null ? lookupProperty(depth0,"text") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"text","hash":{},"data":data,"loc":{"start":{"line":2,"column":4},"end":{"line":2,"column":12}}}) : helper)))
+    + "</h5>\r\n</div>";
+},"useData":true});
 this["spa_templates"]["templates"]["gameboard"] = this["spa_templates"]["templates"]["gameboard"] || {};
 this["spa_templates"]["templates"]["gameboard"]["body"] = Handlebars.template({"1":function(container,depth0,helpers,partials,data,blockParams,depths) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), lookupProperty = container.lookupProperty || function(parent, propertyName) {
