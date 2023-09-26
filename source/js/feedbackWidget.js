@@ -38,6 +38,8 @@ class FeedbackWidget {
       elem.classList.remove('fade-in')
     }, 749)
   }
+  
+
   log (message) {
     let allMessages = JSON.parse(localStorage.getItem('feedback_widget'))
 
