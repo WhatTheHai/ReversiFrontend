@@ -36,7 +36,6 @@ const Game = (function () {
   }
 
   const _getCurrentGameState = function () {
-    console.log(stateMap.gameState.isTurn)
     Game.API.getGameState(configMap.Token)
       .then(data => {
         if (!initializeOnce) {
