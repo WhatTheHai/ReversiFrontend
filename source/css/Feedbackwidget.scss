@@ -5,8 +5,6 @@
   transform: translate(-50%, -50%);
   width: 550px;
   height: 250px;
-  border: 2px solid black;
-  border-radius: 10px;
   z-index: 9999;
 }
 
@@ -42,10 +40,14 @@
 }
 
 .feedback-container--success {
+  border: 2px solid black;
+  border-radius: 10px;
   background-color: #59ce72;
 }
 
 .feedback-container--danger {
+  border: 2px solid black;
+  border-radius: 10px;
   background: linear-gradient(
     rgb(255, 148, 148) 100%,
     rgb(251, 45, 45) 100%
